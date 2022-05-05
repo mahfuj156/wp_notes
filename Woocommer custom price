@@ -1,0 +1,134 @@
+
+function action_woocommerce_single_product_summary() {
+    global $product;
+    
+    // Getters
+    $price = $product->get_price();
+    $currency_symbol = get_woocommerce_currency_symbol();
+    
+    // let's setup our div
+    echo sprintf('<div id="product_total_price" style="margin-bottom:20px;display: block !important">%s %s</div>', __('Total Price:','woocommerce'), '<span class="price">' . $currency_symbol . $price . '</span>' );
+    ?>
+    
+    <style>
+    
+    .golden_number_list_auto_populate label {
+        border: 1px solid #000000;
+        padding: 20px 0px 15px;
+        display: block;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+        .golden_number_list_auto_populate input[checked=checked] + label {
+        background: #be0000;
+        color: #fff;
+        border-color: #be0000;
+    }
+    </style>
+    <script>
+    
+     
+    
+    jQuery(function($) {
+        // jQuery variables
+        jQuery('.single_add_to_cart_button').hide();
+        
+ 
+       
+        
+        var selectedNumber = 0;
+        var price = parseFloat(<?php echo $price; ?>); 
+          var  currency = '<?php echo $currency_symbol; ?>';
+            
+             
+             jQuery('#product_total_price').hide();
+            
+            var product_total = parseFloat( price + selectedNumber );
+            
+            jQuery( '#product_total_price .price' ).html( currency + product_total.toFixed( 2 ) );
+            
+             jQuery('.normal-numberlist input[name=select_number]').on('click',function(e) {
+             
+             
+            var selectedNumber = parseFloat(jQuery(this).attr('data-price'));
+           console.log(selectedNumber);
+             jQuery('input[name="select_number"]').attr("checked",false); 
+            var getId = jQuery(this).val();
+        	var checked =  jQuery('#number__'+getId).attr('checked', 'checked');
+        	
+            
+            jQuery('.custom_price').val(price + selectedNumber); 
+                var product_total = parseFloat( price + selectedNumber ); 
+                jQuery( '#product_total_price .price' ).html( currency + product_total.toFixed( 2 ) );
+                jQuery('#product_total_price').show();
+            
+            });   
+
+
+ 
+  
+var normalNumber = false;var select_time = false;var select_date = false;
+    jQuery('body').on('click', '[data=select_golden_number]', function(e) {
+             
+             
+            var selectedNumber = parseFloat(jQuery(this).attr('data-price'));
+           
+            jQuery('.your-selected-number').html('<h3>Your selected number: '+jQuery(this).val()+'</h3>');
+            
+              normalNumber = true;
+              console.log(normalNumber);
+            
+            jQuery('.custom_price').val(price + selectedNumber); 
+                var product_total = parseFloat( price + selectedNumber ); 
+                jQuery( '#product_total_price .price' ).html( currency + product_total.toFixed( 2 ) );
+                jQuery('#product_total_price').show();
+                
+                
+                 if(normalNumber == true && select_date== true && select_time==true  ){ 
+                    jQuery('.single_add_to_cart_button').show();
+                    jQuery('#custom-next-button').hide();
+                }
+                
+            
+            });  
+            
+            
+            
+            
+              
+        jQuery('.receive_date input[name=select_date]').click(function(){
+              select_date = true; 
+              
+              if(normalNumber == true && select_date== true && select_time==true  ){ 
+                    jQuery('.single_add_to_cart_button').show();
+                    jQuery('#custom-next-button').hide();
+                }
+                
+        });
+        
+        jQuery('.receive_time  input[name=select_time]').click(function(){
+              select_time = true; console.log(select_time);
+               
+                if(normalNumber == true && select_date== true && select_time==true  ){ 
+                    jQuery('.single_add_to_cart_button').show();
+                    jQuery('#custom-next-button').hide();
+                }
+        });
+        
+        
+            
+            
+         
+            
+      
+    });
+    </script>
+    <?php
+
+}
+// We are going to hook this on priority 31, so that it would display below add to cart button.
+add_action( 'woocommerce_single_product_summary', 'action_woocommerce_single_product_summary', 31, 0 );
+
