@@ -1,0 +1,205 @@
+ <style type="text/css">
+    .search-filter .col-md-2 {
+    width: 130px;
+    display: inline-block;
+    margin: 0 5px;
+}
+    .search-filter input[type='text'],.search-filter select {
+    width: 100%;
+}
+.search-filter input[type='submit'] {
+    background: #4aab67;
+    border: none;
+    line-height: 30px;
+    color: #FFF;
+    font-size: 16px;
+    height: 34px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 4px;
+}
+.action{
+    font-size: 14px;
+}
+table td,table th{
+    text-align: left;
+    font-size: 14px;
+}
+
+.tab-content input[type=text],
+.tab-content select{
+    width: 100%;
+    margin-bottom: 15px;
+    display: block;
+}
+
+
+.panel-heading {
+    background: #e1e1e1;
+}
+.panel-heading h3 {
+    margin: 0;
+    padding: 10px;
+    margin-bottom: 18px;
+}
+.btn-primary {
+    background: #0a8f51;
+    border: none;
+    color: #FFF;
+    padding: 6px 15px;
+    border-radius: 3px;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+
+</style>
+
+
+<?php 
+ 
+
+
+global $wpdb;
+
+$user_id = get_current_user_id();   
+$zoh_numbers = $wpdb->prefix . 'numbers';   
+$series = $wpdb->prefix . 'series';   
+ $seriesList = $wpdb->get_results(
+            $wpdb->prepare(" SELECT *  FROM $series where 1 ORDER BY name ASC"), object); 
+            
+
+
+           
+
+ ?>
+
+
+<div class="container">
+
+
+    <div class="row"> 
+
+        <div class="col-md-12 card  tab-card" style="max-width: 450px !important;"> 
+             
+            <!-- Tab panes -->
+            <div class="tab-content" style="    padding: 12px !important;">
+                
+                <div role="tabpanel" class="tab-pane active" id="pending">
+                    <div class="panel panel-custom"> 
+                        <div class="panel-heading"><h3 class="h3">
+                        Import csv file
+                          </h3> 
+                         </div>
+
+                        <div class="panel-body"> 
+                        <?php
+                         
+                          $zoh_numbers = $wpdb->prefix . 'numbers';
+                          
+                         if(isset($_POST["add_new"])){
+		
+
+		   $filename=$_FILES["file"]["tmp_name"];
+		
+            $invalidNumberList = '';
+		 if($_FILES["file"]["size"] > 0)
+		 {
+
+		  	$file = fopen($filename, "r");
+	         while (($emapData = fgetcsv($file, 10000, ",")) !== FALSE)
+	         {
+	   
+	         
+	          /*  $sql = "INSERT into subject (`SUBJ_CODE`, `SUBJ_DESCRIPTION`, `UNIT`, `PRE_REQUISITE`,COURSE_ID, `AY`, `SEMESTER`) 
+	            //	values('$emapData[1]','','$emapData[3]','$emapData[4]','$emapData[5]','$emapData[6]','$emapData[7]')";
+	         //we are using mysql_query function. it returns a resource on true else False on error
+	         $result = mysqli_query( $conn, $sql );*/
+	          
+	           
+            $gnumber = $emapData[0];
+            $series = $emapData[1]; 
+            $price = $emapData[2]; 
+	        $isExits = checkExistsNumber($gnumber);
+	        $seriesList = array('GN0','GN1','GN2','GN3','GN4','GN5','GN6','GN7','GN8','GN9', 'Normal Number');
+	        $priceList = array(5000,2000,1000,'0');
+            
+            if($isExits==null && strlen($gnumber) <=8 && in_array($series, $seriesList)  && in_array("$price", $priceList) ){
+                
+	           $insertRequest = $wpdb->insert($zoh_numbers, array( 
+                "gnumber" =>stripslashes($gnumber),
+                "series" =>stripslashes($series),
+                "price" =>(int)$price,
+                "qty" => 1,  
+                "status" => 1,  
+                "availability" => 0,  
+                "is_booked" => 0,  
+                "booked_time" => null,  
+                "purchased_at" => null,  
+                "created_at" => date('Y-m-d')
+                    )
+            );
+            }else{
+                if(!empty($gnumber)){
+                 $invalidNumberList .= '<li>'.$gnumber.'</li>';
+                }
+            }
+            
+			 
+	         }
+	         fclose($file);
+	         //throws a message if data successfully imported to mysql database from excel file
+	         echo "<script type=\"text/javascript\">
+						alert(\"CSV File has been successfully Imported.\"); 
+					</script>";
+	        
+			 
+
+			 //close of connection
+			mysqli_close($conn); 
+				
+		 	
+			
+		 }
+	}	 
+	
+            
+         
+
+            ?>
+             <?php if(!empty($invalidNumberList)){ echo "<h3>Number already exists</h3>"; } ?>
+            <ol style="    color: #F00;">
+                <?php if(!empty($invalidNumberList)){ echo $invalidNumberList; } ?>
+            </ol>
+  <form  method="post" id="golden_number" enctype="multipart/form-data"> 
+    <table>
+      <tr>
+        <td>   <label for="course_title"><?php _e( 'Select .csv file', 'woocommerce' ); ?> <span class="required">*</span></label></td> 
+        <td> <input type="file"   class="form-control" name="file" id="number" accept=".csv" required/>  </td> 
+      </tr> 
+    </table>
+   
+         
+    <input type="submit" class="btn btn-primary" name="add_new" value="Import" /> 
+  </form> 
+  <br/>
+  <br/>
+  <p><strong>Please note:</strong><br/>
+   <ol>
+       <li><strong>Mobile Number:</strong> The length should be 8 digit</li>
+       <li><strong>Price:</strong> It should be 5000, 2000, 1000 and 0</li>
+       <li><strong>Series:</strong> It should be accept  GN0, GN1, GN2, GN3, GN4, GN5, GN6, GN7, GN8, GN9 and Normal Number</li>
+       <li><a href="<?php echo ZOH_PLUGIN_URL; ?>/zoh-orfeo/frontviews/goldenNumberDemo.csv" download><strong>Please download sample file</strong> </a></li>
+   </ol> 
+
+  </p>
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+            </div>
+        </div>
+    </div>
+      
+  
